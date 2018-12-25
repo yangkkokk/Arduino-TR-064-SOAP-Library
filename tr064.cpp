@@ -1,12 +1,14 @@
 /*
-  tr064.h - Library for communicating via TR-064 protocol
-  (e.g. Fritz!Box)
-  A descriptor of the protocol can be found here: https://avm.de/fileadmin/user_upload/Global/Service/Schnittstellen/AVM_TR-064_first_steps.pdf
-  The latest Version of this library can be found here: http://github.com/Aypac
-  Created by René Vollmer, November 2016
+ * tr064.h - Library for communicating via TR-064 protocol
+ * (e.g. Fritz!Box)
+ * A descriptor of the protocol can be found here: https://avm.de/fileadmin/user_upload/Global/Service/Schnittstellen/AVM_TR-064_first_steps.pdf
+ * The latest Version of this library can be found here: http://github.com/Aypac
+ * Please refer to  https://github.com/Aypac/Arduino-TR-064-SOAP-Library for more details.
   
-  Better C++ code by Raymond Czerny, December 2018
-*/
+ * Created by René Vollmer, November 2016
+ * External changes:
+ *  - Better C++ code by Raymond Czerny, December 2018
+ */
 
 // basic integer types
 #include <cstdint>
@@ -18,8 +20,20 @@
 // use logic names: not, or, xor ... 
 #include <ciso646> 
 
-#include "_tr064.hpp"
+#include "tr064.h" //Use .hpp?
 
+/**
+ *
+ *
+ *
+ *
+ * \param port
+ * \param ip
+ * \param user
+ * \param pass
+ * \return None
+ *
+ */
 TR064::TR064(const int port, const String ip, 
              const String user, const String pass)
   : _port(port)
@@ -29,7 +43,12 @@ TR064::TR064(const int port, const String ip,
 {
 }
 
-// Fetches a list of all services and the associated urls
+/*
+ *
+ * \brief Fetches a list of all services and the associated urls
+ *
+ * \return key-value pair of all services and the associated urls
+ */
 void TR064::initServiceURLs() {
    constexpr size_t COUNT_CHAR = std::string("service").size(); //length of word "service"
    const String inStr = httpRequest(_detectPage, "", "");
@@ -40,15 +59,11 @@ void TR064::initServiceURLs() {
        const String serviceXML  = inStr.substring(indexStart + COUNT_CHAR + 2, indexStop);
        const String servicename = xmlTakeParam(serviceXML, "serviceType");
        const String controlurl  = xmlTakeParam(serviceXML, "controlURL");
-#if 0 // original code disabled   
-       _services[i][0] = servicename;
-       _services[i][1] = controlurl;
-       ++i;
-#else // new C++ code
+
        _services[servicename] = controlurl; // save as key-value pair
-#endif
+
        if(Serial) {
-           Serial.printf("Service no %d:\t", /* i replaced */ _service.size());
+           Serial.printf("Service no %d:\t", _service.size());
            Serial.flush();
            Serial.println(servicename + " @ " + controlurl);
        }
@@ -56,7 +71,11 @@ void TR064::initServiceURLs() {
    }
 }
 
-// Fetches the initial nonce and the realm
+/**
+ * \brief Fetches the initial nonce and the realm
+ *
+ * \return void
+ */
 void TR064::initNonce() {
     if(Serial) Serial.print("Geting the initial nonce and realm\n");
     ParamList a;
